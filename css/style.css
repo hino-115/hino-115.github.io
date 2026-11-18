@@ -1,0 +1,283 @@
+/* 幅と高さの計算に内側の余白と枠線を含める。 */
+* {
+	box-sizing: border-box
+}
+
+:root {
+	color-scheme: dark
+}
+
+/* ページに背景を付け、テレビとコントローラーをまとめて上寄せし、左右中央に置く。 */
+body {
+	margin: 0;
+	min-height: 100svh;
+	display: grid;
+	place-items: start center;
+	padding: 12px 14px 24px;
+	background: radial-gradient(ellipse at 50% 28%, #36304a, #171622 72%);
+	color: #f9f4ff;
+	font: 16px system-ui, sans-serif
+}
+
+/* 全体の幅を最大600pxに制限し、狭い画面では使える幅に合わせる。 */
+main {
+	width: min(100%, 600px)
+}
+
+/* テレビの外枠。角丸、グラデーション、影で厚みを出す。 */
+.tv {
+	padding: clamp(11px, 3vw, 25px);
+	border-radius: clamp(22px, 6vw, 52px);
+	background: linear-gradient(155deg, #494453, #252331 70%);
+	border: 2px solid #666073;
+	box-shadow: inset 0 -8px 0 #1f1d28, 0 25px 60px #100d18aa
+}
+
+/* テレビ画面の比率を4:3に保つ。細い横線とグラデーションでブラウン管風に見せる。 */
+.screen {
+	aspect-ratio: 4/3;
+	position: relative;
+	display: grid;
+	place-items: center;
+	text-align: center;
+	overflow: hidden;
+	border: 5px solid #13171c;
+	border-radius: 12% / 13%;
+	background: repeating-linear-gradient(transparent 0 3px, #17172b38 3px 4px), radial-gradient(ellipse at 50% 45%, #294c52, #14272e 78%);
+	box-shadow: inset 0 0 28px #0b171a;
+	color: #fff4cf;
+	padding: 16px
+}
+
+/* JavaScriptがタイトルやメニューを表示する領域。 */
+.stage {
+	width: 100%
+}
+
+h1,
+h2,
+p {
+	margin: 0
+}
+
+/* スタート画面のタイトル。clamp()で文字サイズと下の余白を画面幅に応じて調整する。 */
+h1 {
+	font: 900 clamp(2.2rem, 9vw, 5.4rem)/1 ui-monospace, monospace;
+	letter-spacing: -.075em;
+	text-shadow: 3px 4px #121c29;
+	margin-bottom: clamp(16px, 5vw, 40px)
+}
+
+h2 {
+	font-size: clamp(1.2rem, 5vw, 2.4rem);
+	line-height: 1.25
+}
+
+/* メニューの選択肢を縦に並べ、左右中央に配置する。 */
+.options {
+	display: grid;
+	justify-content: center;
+	gap: 9px
+}
+
+button {
+	font: inherit;
+	cursor: pointer;
+	touch-action: manipulation
+}
+
+/* キーボードで操作対象になったボタンを黄色い輪郭で示す。 */
+button:focus-visible {
+	outline: 3px solid #ffdc73;
+	outline-offset: 3px;
+	z-index: 2
+}
+
+/* メニューの項目。高さを44px以上にしてタップできる領域を確保する。 */
+.option {
+	position: relative;
+	border: 1px solid transparent;
+	background: transparent;
+	color: inherit;
+	border-radius: 6px;
+	min-width: clamp(135px, 33vw, 250px);
+	min-height: 44px;
+	padding: 7px 24px;
+	font-weight: 800;
+	font-size: clamp(1rem, 3.8vw, 1.6rem)
+}
+
+/* JavaScriptが選択中の項目に設定する属性を使い、枠と背景を強調する。 */
+.option[aria-current=true] {
+	border-color: #fde9ae77;
+	background: #fde9ae15
+}
+
+/* 選択中の項目の左側に三角マークを出す。 */
+.option[aria-current=true]::before {
+	content: "▸";
+	position: absolute;
+	left: 9px;
+	color: #fce097
+}
+
+/* テレビ枠の下に表示名と電源ランプを左右に並べる。 */
+.status {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 13px 6px 1px;
+	color: #e1d9ec;
+	font: 700 .85rem ui-monospace, monospace
+}
+
+.light {
+	width: 8px;
+	height: 8px;
+	background: #f8a38d;
+	border-radius: 50%;
+	box-shadow: 0 0 12px #f58869
+}
+
+/* コントローラーの外枠。十字キーと丸ボタンを左右に配置する。 */
+.controller {
+	width: min(100%, 455px);
+	position: relative;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	margin: 20px auto 15px;
+	padding: 18px clamp(14px, 5vw, 34px);
+	border-radius: 70px;
+	background: linear-gradient(#eee9f2, #c2bbcf);
+	border: 2px solid #f4eff8;
+	box-shadow: inset 0 -7px #a39ab4, 0 12px 25px #100d18aa
+}
+
+/* 十字キーを3行×3列で組む。--unitは1マスの幅と高さ。 */
+.dpad {
+	--unit: clamp(36px, 10vw, 44px);
+	display: grid;
+	grid-template-columns: repeat(3, var(--unit));
+	grid-template-rows: repeat(3, var(--unit));
+	filter: drop-shadow(0 4px 2px #70687c)
+}
+
+.direction,
+.pivot {
+	border: 0;
+	background: #363240;
+	color: #eee7f6;
+	display: grid;
+	place-items: center
+}
+
+.direction:active,
+.direction[data-pressed] {
+	background: #585065
+}
+
+/* 各方向と中心の位置をgrid-areaの行番号・列番号で指定する。 */
+.up {
+	grid-area: 1/2;
+	border-radius: 8px 8px 0 0
+}
+
+.left {
+	grid-area: 2/1;
+	border-radius: 8px 0 0 8px
+}
+
+.pivot {
+	grid-area: 2/2
+}
+
+/* 十字キーの中央に丸いくぼみを描く。 */
+.pivot::after {
+	content: "";
+	width: 48%;
+	aspect-ratio: 1;
+	background: #2a2634;
+	border-radius: 50%
+}
+
+.right {
+	grid-area: 2/3;
+	border-radius: 0 8px 8px 0
+}
+
+.down {
+	grid-area: 3/2;
+	border-radius: 0 0 8px 8px
+}
+
+/* 進む・戻るボタンを横に並べ、台座の色と余白を設定する。 */
+.actions {
+	display: flex;
+	gap: clamp(6px, 2vw, 12px);
+	padding: 8px;
+	border-radius: 45px;
+	background: #a49ab4
+}
+
+/* 縦横比を1:1にして丸ボタンを作る。内側の影で厚みを出す。 */
+.action {
+	width: clamp(42px, 12vw, 62px);
+	aspect-ratio: 1;
+	border-radius: 50%;
+	border: 1px solid #fff6;
+	color: white;
+	font-size: clamp(1.3rem, 4vw, 1.8rem);
+	font-weight: 800;
+	background: #6d56ad;
+	box-shadow: inset 0 -5px #483378, 0 3px 4px #4d415c99;
+	padding-bottom: 6px
+}
+
+/* 戻るボタンの配色を設定する。 */
+.action.back {
+	background: #8e6ab5;
+	box-shadow: inset 0 -5px #634683, 0 3px 4px #4d415c99
+}
+
+/* 押している間だけボタンを下に2pxずらす。 */
+.action:active {
+	transform: translateY(2px)
+}
+
+/* テレビの枠内に、自己紹介や作品紹介のHTMLを表示する。 */
+.detail-frame {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	border: 0;
+}
+
+/* 詳細HTMLの本文。画面に収まらない場合はテレビ内をスクロールできる。 */
+body.detail-page {
+	display: block;
+	min-height: 0;
+	padding: clamp(18px, 5vw, 34px);
+	background: transparent;
+	color: #fff4cf;
+	text-align: left;
+	font-size: clamp(.85rem, 3.4vw, 1rem);
+	line-height: 1.65;
+}
+
+.detail-page h1 {
+	margin: 0 0 .65em;
+	font: 800 clamp(1.25rem, 5vw, 2rem)/1.2 system-ui, sans-serif;
+	letter-spacing: normal;
+}
+
+.detail-page h2 {
+	margin: .85em 0 .25em;
+	font-size: 1em;
+}
+
+.detail-page p+p {
+	margin-top: .7em;
+}

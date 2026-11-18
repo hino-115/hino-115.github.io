@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Portfolio | hino</title>
+<link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+<main aria-label="hinoのポートフォリオ">
+  <section class="tv" aria-label="テレビ">
+    <div class="screen"><div class="stage" id="stage"></div></div>
+    <div class="status"><span>hino</span><span class="light" aria-hidden="true"></span></div>
+  </section>
+  <section class="controller" aria-label="コントローラー">
+    <div class="dpad" role="group" aria-label="十字キー">
+      <button type="button" class="direction up" data-step="-1" aria-label="上">▲</button>
+      <button type="button" class="direction left" data-step="-1" aria-label="左">◀</button>
+      <span class="pivot" aria-hidden="true"></span>
+      <button type="button" class="direction right" data-step="1" aria-label="右">▶</button>
+      <button type="button" class="direction down" data-step="1" aria-label="下">▼</button>
+    </div>
+    <div class="actions" role="group" aria-label="戻る・進む">
+      <button type="button" class="action back" id="back" aria-label="戻る">B</button>
+      <button type="button" class="action" id="next" aria-label="進む">A</button>
+    </div>
+  </section>
+</main>
+<script src="./js/script.js"></script>
+</body>
+</html>
