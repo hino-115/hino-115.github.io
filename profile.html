@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>自己紹介</title>
+  <link rel="stylesheet" href="./css/style.css">
+</head>
+<body class="detail-page">
+  <article>
+    <h1>自己紹介</h1>
+    <p>はじめまして、hinoです。今までの仕事で、相手の話を聞き、困っていることを整理する力を培いました。</p>
+    <p>SEとしては、システムの保守・運用を担当し、既存のコードを読み解いて不具合の原因を調べ、修正してきました。現在は、個人制作を通して要件定義や設計にも取り組んでいます。</p>
+  </article>
+  <script>
+    // テレビ内にフォーカスがあるときの Esc を親画面に伝える。
+    window.addEventListener('keydown', event => {
+      if (event.key === 'Escape' && !event.repeat && window.parent !== window) {
+        window.parent.postMessage('portfolio:back', '*');
+      }
+    });
+  </script>
+</body>
+</html>
