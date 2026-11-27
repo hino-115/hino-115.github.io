@@ -4,28 +4,102 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Portfolio</title>
-  <link rel="stylesheet" href="./css/style.css">
+  <link rel="stylesheet" href="./style.css">
+  <style>
+    /* 選択した作品を枠と三角マークで示す。既存の画面用CSSに重ねる。 */
+    .project-link {
+      display: block;
+      position: relative;
+      padding: 8px 10px 8px 26px;
+      border: 1px solid transparent;
+      border-radius: 6px;
+      color: inherit;
+    }
+    .project-link[aria-current="true"] {
+      border-color: #fde9ae77;
+      background: #fde9ae15;
+    }
+    .project-link[aria-current="true"]::before {
+      content: "▸";
+      position: absolute;
+      left: 8px;
+      color: #fce097;
+    }
+  </style>
 </head>
 <body class="detail-page">
   <article>
     <h1>Portfolio</h1>
     <p>個人で取り組んでいる制作物を紹介します。</p>
-    <a href="https://github.com/hino-115/Portfolio-Kakuu-WMS"
-           target="_blank"
-       rel="noopener noreferrer">
-    <h2>コーヒー豆向け小規模WMS</h2>
-    </a>
+    <h2>
+      <a class="project-link"
+         href="https://github.com/hino-115/Portfolio-Kakuu-WMS"
+         target="_blank" rel="noopener noreferrer">
+        コーヒー豆向け小規模WMS
+      </a>
+    </h2>
     <p>小規模な倉庫で、コーヒー豆の入出庫と在庫を管理するシステムです。倉庫での作業の流れを整理し、必要な機能を設計しています。</p>
-<!--    <h2>フォニックス学習アプリ</h2>-->
-<!--    <p>英語の音とつづりの関係を学ぶWebアプリです。学習した音に合わせて練習用の単語を表示できるよう、データベースを設計しています。</p>-->
+    <h2>フォニックス学習アプリ</h2>
+    <p>英語の音とつづりの関係を学ぶWebアプリです。学習した音に合わせて練習用の単語を表示できるよう、データベースを設計しています。</p>
   </article>
   <script>
-    // テレビ内にフォーカスがあるときの Esc を親画面に伝える。
+    // コントローラーで選べるリンクを集める。作品を追加する場合も project-link を付ける。
+    const projectLinks = [...document.querySelectorAll('.project-link')];
+    let selectedProject = 0;
+
+    function showSelection(index) {
+      if (index < 0 || index >= projectLinks.length) return;
+      selectedProject = index;
+      projectLinks.forEach((link, position) => {
+        link.setAttribute('aria-current', String(position === selectedProject));
+      });
+      projectLinks[selectedProject].scrollIntoView({ block: 'nearest' });
+    }
+
+    // 親画面が決めた選択位置を受け取り、テレビ内の強調表示を更新する。
+    window.addEventListener('message', event => {
+      if (event.source !== window.parent) return;
+      if (event.data?.type !== 'portfolio:selection') return;
+      if (Number.isInteger(event.data.index)) showSelection(event.data.index);
+    });
+
+    // Tabなどでリンクにフォーカスした場合も、コントローラーの選択と合わせる。
+    projectLinks.forEach((link, index) => {
+      link.addEventListener('focus', () => {
+        showSelection(index);
+        if (window.parent !== window) {
+          window.parent.postMessage({ type: 'portfolio:focus', index }, '*');
+        }
+      });
+    });
+
+    // テレビ内にフォーカスがある場合のキーボード操作。
     window.addEventListener('keydown', event => {
-      if (event.key === 'Escape' && !event.repeat && window.parent !== window) {
+      if (event.altKey || event.ctrlKey || event.metaKey) return;
+      const steps = { ArrowUp: -1, ArrowLeft: -1, ArrowDown: 1, ArrowRight: 1 };
+      if (Object.hasOwn(steps, event.key)) {
+        event.preventDefault();
+        if (window.parent !== window) {
+          window.parent.postMessage({ type: 'portfolio:move', step: steps[event.key] }, '*');
+        } else if (projectLinks.length > 0) {
+          showSelection((selectedProject + steps[event.key] + projectLinks.length) % projectLinks.length);
+        }
+      } else if (event.key === 'Escape' && !event.repeat && window.parent !== window) {
         window.parent.postMessage('portfolio:back', '*');
+      } else if (event.key === 'Enter' && !event.repeat) {
+        event.preventDefault();
+        projectLinks[selectedProject]?.click();
       }
     });
+
+    // Portfolio画面を開いたら最初の作品を選択し、親画面へリンク一覧を渡す。
+    showSelection(0);
+    if (window.parent !== window) {
+      window.parent.postMessage({
+        type: 'portfolio:ready',
+        links: projectLinks.map(link => link.href)
+      }, '*');
+    }
   </script>
 </body>
 </html>
