@@ -281,3 +281,7 @@ body.detail-page {
 .detail-page p+p {
 	margin-top: .7em;
 }
+
+.detail-page a {
+    color: inherit;
+}
