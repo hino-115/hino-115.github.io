@@ -3,14 +3,26 @@ const stage = document.querySelector('#stage');
 // 画面ごとの表示内容を定義する。options と destinations は同じ順番で対応する。
 const screens = {
   start: { title: 'Portfolio', options: ['スタート'], destinations: ['menu'] },
-  menu: { options: ['自己紹介', 'ポートフォリオ'], destinations: ['profile', 'portfolio'] },
+  menu: { options: ['自己紹介', 'Portfolio'], destinations: ['profile', 'portfolio'] },
   profile: { title: '自己紹介', page: './profile.html' },
-  portfolio: { title: 'ポートフォリオ', page: './portfolio.html' }
+  portfolio: { title: 'Portfolio', page: './portfolio.html' }
 };
 // 表示中の画面、選択中の項目番号、メニューに戻るときの選択位置を保持する。
 let current = 'start';
 let selected = 0;
 let menuSelection = 0;
+
+// 別HTML内の作品リンクを記憶する。決定ボタンのクリック中に直接開くため親画面でも管理する。
+let projectLinks = [];
+let projectSelected = 0;
+let projectFrame = null;
+
+function updateProjectSelection() {
+  projectFrame?.postMessage({
+    type: 'portfolio:selection',
+    index: projectSelected
+  }, '*');
+}
 
 // 選択中のボタンの aria-current を true にする。CSS はこの属性を使って選択中の項目を強調する。
 function updateSelection() {
@@ -24,6 +36,9 @@ function render() {
   const screen = screens[current];
   // 前の画面の要素を消してから、新しい画面の内容を追加する。
   stage.replaceChildren();
+  projectLinks = [];
+  projectSelected = 0;
+  projectFrame = null;
   // 詳細画面の見出しと本文は、テレビ内のフレームで別HTMLを表示する。
   if (screen.page) {
     const frame = document.createElement('iframe');
@@ -64,6 +79,13 @@ function render() {
 
 // 十字キーで選択を移動する。step が -1 なら前、1 なら次の項目へ進む。
 function move(step) {
+  // Portfolio画面では、別HTML内にある作品リンクの選択を移動する。
+  if (current === 'portfolio') {
+    if (projectLinks.length === 0) return;
+    projectSelected = (projectSelected + step + projectLinks.length) % projectLinks.length;
+    updateProjectSelection();
+    return;
+  }
   const count = screens[current].options?.length ?? 0;
   if (count < 2) return;
   // 余りを使い、最後から先頭へ、先頭から最後へと循環させる。
@@ -77,6 +99,12 @@ function move(step) {
 
 // 選択中の項目に対応する画面へ進む。詳細画面など、遷移先がない場合は処理を終える。
 function advance() {
+  // ユーザーが丸ボタンを押した処理の中で開くことで、新しいタブへの操作を伝える。
+  if (current === 'portfolio') {
+    const link = projectLinks[projectSelected];
+    if (link) window.open(link, '_blank', 'noopener,noreferrer');
+    return;
+  }
   const destination = screens[current].destinations?.[selected];
   if (!destination) return;
   // 詳細画面から戻ったときに同じ項目を選べるよう、メニューの選択位置を記憶する。
@@ -131,10 +159,39 @@ window.addEventListener('keydown', event => {
 // ページを開いたときに、最初のスタート画面を表示する。
 render();
 
-// 詳細HTMLの中で Esc を押した場合も、テレビ側のメニューに戻る。
+// 現在表示中のHTMLから届いた通知だけを受け付ける。
 window.addEventListener('message', event => {
   const frame = stage.querySelector('.detail-frame');
-  if (!frame || event.source !== frame.contentWindow || event.data !== 'portfolio:back') return;
-  back();
-  document.querySelector('#back').focus();
+  if (!frame || event.source !== frame.contentWindow) return;
+
+  if (event.data === 'portfolio:back') {
+    back();
+    document.querySelector('#back').focus();
+    return;
+  }
+
+  if (current !== 'portfolio' || !event.data || typeof event.data !== 'object') return;
+  if (event.data.type === 'portfolio:ready') {
+    // 公開Webページへのリンクだけをコントローラーの決定対象にする。
+    if (!Array.isArray(event.data.links)) return;
+    projectLinks = event.data.links.filter(link => {
+      if (typeof link !== 'string') return false;
+      try {
+        const url = new URL(link);
+        return url.protocol === 'https:' || url.protocol === 'http:';
+      } catch {
+        return false;
+      }
+    });
+    projectSelected = 0;
+    projectFrame = frame.contentWindow;
+    updateProjectSelection();
+  } else if (event.data.type === 'portfolio:move') {
+    if (event.data.step === -1 || event.data.step === 1) move(event.data.step);
+  } else if (event.data.type === 'portfolio:focus') {
+    const index = event.data.index;
+    if (!Number.isInteger(index) || index < 0 || index >= projectLinks.length) return;
+    projectSelected = index;
+    updateProjectSelection();
+  }
 });
